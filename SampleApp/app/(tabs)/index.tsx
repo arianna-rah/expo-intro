@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   helloText: {
-    fontSize: 30,
+    fontSize: 20,
     marginBottom: 20
   },
   rowContainer: {
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   button: {
-    width: 100,
+    width: 70,
     height: 50,
     backgroundColor: 'blue',
     margin: 10,
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: 'white',
-    fontSize: 20,
+    fontSize: 15,
     textAlign: 'center'
   }
 });
