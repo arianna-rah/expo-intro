@@ -1,70 +1,124 @@
-import 'react-native-reanimated';
+import React, {useState, useContext, useRef, useMemo, createContext, ReactNode} from "react";
+import {View, Text, Button, TextInput, StyleSheet} from "react-native";
 
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native'
+type ThemeColors = {
+  bg: string;
+  text: string;
+};
 
-export default function Layout() {
-  const [textInput, setTextInput] = useState("");
-  const [hello, setHello] = useState("Hello World!");
+type ThemeContextType = {
+  darkMode: boolean;
+  toggleTheme: () => void;
+  colors: ThemeColors;
+};
 
-  const handlePress = () => {
-    setHello(`Hello ${textInput}`);
-    setTextInput('');
-  }
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+type ThemeProviderProps = {
+  children: ReactNode;
+};
+
+function ThemeProvider({ children }: ThemeProviderProps) {
+  const [darkMode, setDarkMode] = useState<boolean>(false);
+
+  const value: ThemeContextType = {
+    darkMode,
+    toggleTheme: () => setDarkMode((prev) => !prev),
+    colors: darkMode
+      ? { bg: "#121212", text: "#ffffff" }
+      : { bg: "#ffffff", text: "#000000" },
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.helloText}>
-        {hello}
+    <ThemeContext.Provider value={value}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+function DemoScreen() {
+  const theme = useContext(ThemeContext);
+  if (!theme) {
+    throw new Error("DemoScreen must be used within ThemeProvider");
+  }
+
+  const { colors, toggleTheme } = theme;
+
+  const inputRef = useRef<TextInput | null>(null);
+
+  const [count, setCount] = useState<number>(0);
+
+  const someCalculation: number = useMemo(() => {
+    let total = 0;
+    for (let i = 0; i < 10_000_000; i++) {
+      total += i;
+    }
+    return total + count;
+  }, [count]);
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
+      <Text style={[styles.title, { color: colors.text }]}>
+        React Native Hooks Demo (TS)
       </Text>
-      <View style={styles.rowContainer}>
-        <TextInput 
-        style={{ height: 50, borderColor: 'gray', borderWidth: 1, width: '100%', padding: 5, borderRadius: 10 }}
-        onChangeText={(val) => setTextInput(val)} 
-        value={textInput}
-        placeholder="What's your name?"
+
+      <Text style={{ color: colors.text }}>
+        Result: {someCalculation}
+      </Text>
+
+      <Button
+        title="Increase Count"
+        onPress={() => setCount((prev) => prev + 1)}
+      />
+
+      <View style={{ marginVertical: 20 }}>
+        <TextInput
+          ref={inputRef}
+          style={[
+            styles.input,
+            { color: colors.text, borderColor: colors.text },
+          ]}
+          placeholder="Tap button to focus me"
+          placeholderTextColor="#888"
         />
-        <TouchableOpacity style={styles.button} onPress={handlePress}>
-          <Text style={styles.buttonText}>
-            Submit
-          </Text>
-        </TouchableOpacity>
+        <Button
+          title="Focus Input (useRef)"
+          onPress={() => inputRef.current?.focus()}
+        />
       </View>
+
+      <Button
+        title="Toggle Theme (useContext)"
+        onPress={toggleTheme}
+      />
     </View>
   );
 }
 
+export default function App() {
+  return (
+    <ThemeProvider>
+      <DemoScreen />
+    </ThemeProvider>
+  );
+}
+
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
+    padding: 24,
+    justifyContent: "center",
   },
-  helloText: {
-    fontSize: 20,
-    marginBottom: 20
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 16,
   },
-  rowContainer: {
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'space-between', 
-    backgroundColor: '#fff',
+  input: {
+    borderWidth: 1,
     padding: 10,
+    marginBottom: 10,
+    borderRadius: 6,
   },
-  button: {
-    width: 70,
-    height: 50,
-    backgroundColor: 'blue',
-    margin: 10,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 15,
-    textAlign: 'center'
-  }
 });
